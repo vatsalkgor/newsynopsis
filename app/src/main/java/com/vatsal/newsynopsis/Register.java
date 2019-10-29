@@ -1,6 +1,6 @@
 package com.vatsal.newsynopsis;
 
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.android.volley.Request;
@@ -9,8 +9,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.vatsal.newsynopsis.utils.Utils;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,17 +22,12 @@ import android.widget.EditText;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 
 public class Register extends AppCompatActivity {
 
     private RequestQueue queue;
     private final String TAG = Register.class.getName();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +36,7 @@ public class Register extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         Button btnRegister = findViewById(R.id.registration_page_button);
-        final EditText etUsername = (EditText) findViewById(R.id.reg_username);
+        final EditText etUsername = findViewById(R.id.reg_username);
         final EditText etPass = findViewById(R.id.reg_password);
         final EditText etCpass = findViewById(R.id.reg_cpassword);
 
@@ -66,15 +59,14 @@ public class Register extends AppCompatActivity {
                     Utils.makeToast(getApplicationContext(), "Password must be greater than 8 characters.");
                 } else {
                     Log.d("debug", "in else");
-                    //send post request here to node js server.
-                    sendRequest(username, password);
-                    //make json object from username and password
-
+                    // send post request here to node js server.
+                     sendRequest(username, password);
                 }
             }
         });
 
     }
+
     public void sendRequest(String username, String password){
         queue = Volley.newRequestQueue(this);
         String url = "https://newsynopsis-api.herokuapp.com/v1/user/register";
@@ -85,6 +77,19 @@ public class Register extends AppCompatActivity {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d(TAG,response.toString());
+                try {
+                    JSONObject resp = new JSONObject(response.toString());
+                    if(resp.getBoolean("success")){
+                        Intent i = new Intent(Register.this, MainActivity.class);
+                        i.putExtra("msg",resp.getString("msg"));
+                        startActivity(i);
+                    }else{
+                        Utils.makeToast(getApplicationContext(),"Username already exist.");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         }, new Response.ErrorListener() {
             @Override
